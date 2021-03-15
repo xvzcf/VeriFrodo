@@ -1,0 +1,195 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#include "shake128.jahh"
+#include "util.jahh"
+#include "params.jahh"
+#include "noise.jahh"
+#include "matrix_shake.jahh"
+
+// All secret buffers are cleared as soon as they are no longer needed
+export fn jazz_crypto_kem_keypair(reg u64 pk, reg u64 sk, reg u64 randomness)
+{
+    stack u8[BYTES_SEED_A] pk_seedA;
+    stack u8[N_BY_NBAR_PACKED_BYTES] pk_b;
+    stack u8[PUBLICKEYBYTES] pk_total;
+
+    stack u8[BYTES_PKHASH] sk_pkh;
+
+    stack u16[N * NBAR] B;
+    stack u16[N * NBAR] S; // Contains secret data
+    stack u16[N * NBAR] E; // Contains secret data
+    stack u8[4 * N * NBAR] SE; // Contains secret data
+
+    // randomness is 2 * CRYPTO_BYTES + BYTES_SEED_A bytes
+    // long. The first 2 * CRYPTO_BYTES bytes contain secret data.
+    stack u8[1 + CRYPTO_BYTES] shake_input_seedSE; // Contains secret data
+    stack u8[CRYPTO_BYTES] randomness_z;
+
+    reg u64 i, j, k;
+    reg u8 t1;
+
+    stack u64 sk_saved;
+    stack u64 randomness_saved;
+
+    sk_saved = sk;
+
+    i = 0;
+    j = 2 * CRYPTO_BYTES;
+    while(i < BYTES_SEED_A)
+    {
+        t1 = (u8)[randomness + j];
+        randomness_z[(int)i] = t1;
+
+        j += 1;
+        i += 1;
+    }
+
+    randomness_saved = randomness;
+    pk_seedA = shake128_CRYPTO_BYTES_to_BYTES_SEED_A(pk_seedA, randomness_z);
+    randomness = randomness_saved;
+
+    shake_input_seedSE[0] = 0x5F;
+    j = CRYPTO_BYTES;
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        // The second CRYPTO_BYTES bytes of randomness are cleared here.
+        t1 = (u8)[randomness + j];
+        (u8)[randomness + j] = 0;
+        j += 1;
+
+        i += 1;
+        shake_input_seedSE[(int)i] = t1;
+    }
+
+    randomness_saved = randomness;
+
+    SE = shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(SE, shake_input_seedSE);
+
+    i = 0;
+    j = N * NBAR * 2;
+    while(i < N * NBAR * 2)
+    {
+        t1 = SE[(int)i];
+        S[u8 (int)i] = t1;
+
+        t1 = SE[(int)j];
+        E[u8 (int)i] = t1;
+
+        i += 1;
+        j += 1;
+
+        t1 = SE[(int)i];
+        S[u8 (int)i] = t1;
+
+        t1 = SE[(int)j];
+        E[u8 (int)i] = t1;
+
+        i += 1;
+        j += 1;
+    }
+
+    S = sample_N_by_NBAR(S);
+    E = sample_N_by_NBAR(E);
+    B = mul_add_as_plus_e(B, S, E, pk_seedA);
+    pk_b = pack_N_by_NBAR(pk_b, B);
+
+    // Assemble public and private keys
+    sk = sk_saved;
+    randomness = randomness_saved;
+    i = 0;
+    while (i < CRYPTO_BYTES)
+    {
+        // The first CRYPTO_BYTES bytes of randomness are cleared here.
+        t1 = (u8)[randomness + i];
+        (u8)[randomness + i] = 0;
+        (u8)[sk + i] = t1;
+        i += 1;
+    }
+
+    j = 0;
+    while (j < BYTES_SEED_A)
+    {
+        t1 = pk_seedA[(int)j];
+
+        pk_total[(int)j] = t1;
+        (u8)[pk + j] = t1;
+        (u8)[sk + i] = t1;
+
+        i += 1;
+        j += 1;
+    }
+
+    k = 0;
+    while (k < PUBLICKEYBYTES - BYTES_SEED_A)
+    {
+        t1 = pk_b[(int)k];
+        pk_total[(int)j] = t1;
+        (u8)[pk + j] = t1;
+        (u8)[sk + i] = t1;
+
+        j += 1;
+        i += 1;
+        k += 1;
+    }
+
+    j = 0;
+    while(j < 2 * N * NBAR)
+    {
+        t1 = S[u8 (int)j];
+        (u8)[sk + i] = t1;
+
+        j += 1;
+        i += 1;
+
+        t1 = S[u8 (int)j];
+        (u8)[sk + i] = t1;
+
+        j += 1;
+        i += 1;
+    }
+
+    sk_saved = sk;
+    sk_pkh = shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(sk_pkh, pk_total);
+    sk = sk_saved;
+
+    j = 0;
+    while (j < BYTES_PKHASH)
+    {
+        t1 = sk_pkh[(int)j];
+        (u8)[sk + i] = t1;
+
+        j += 1;
+        i += 1;
+    }
+
+    // Clear the other secret buffers, starting with
+    // SE, S, and E
+    i = 0;
+    while(i < N * NBAR * 2)
+    {
+        SE[(int)i] = 0;
+        S[u8 (int)i] = 0;
+
+        i += 1;
+    }
+    j = 0;
+    while(j < N * NBAR * 2)
+    {
+        SE[(int)i] = 0;
+        E[u8 (int)j] = 0;
+
+        j += 1;
+        i += 1;
+    }
+
+    // Clear last CRYPTO_BYTES bytes of shake_input_seedSE
+    i = 1;
+    while(i < CRYPTO_BYTES + 1)
+    {
+        shake_input_seedSE[(int)i] = 0;
+        i += 1;
+    }
+
+}

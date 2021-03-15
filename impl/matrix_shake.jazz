@@ -1,0 +1,99 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#include "matrix_shake.jahh"
+#include "params.jahh"
+
+export fn jazz_mul_add_as_plus_e(reg u64 out_p, reg u64 s_p, reg u64 e_p, reg u64 seed_A_p)
+{
+    reg u64 i;
+    reg u16 t;
+    reg u8 t1;
+    stack u16[N * NBAR] s;
+    stack u16[N * NBAR] e;
+    stack u8[BYTES_SEED_A] seed_A;
+    stack u16[N * NBAR] out;
+
+    stack u64 out_p_st;
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t = (u16)[s_p + 2*i];
+        s[(int)i] = t;
+
+        t = (u16)[e_p + 2*i];
+        e[(int)i] = t;
+
+        i += 1;
+    }
+
+    i = 0;
+    while (i < BYTES_SEED_A)
+    {
+        t1 = (u8)[seed_A_p + i];
+        seed_A[(int)i] = t1;
+        i += 1;
+    }
+
+    out_p_st = out_p;
+
+    out = mul_add_as_plus_e(out, s, e, seed_A);
+
+    out_p = out_p_st;
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t = out[(int)i];
+        (u16)[out_p + 2*i] = t;
+        i += 1;
+    }
+}
+
+export fn jazz_mul_add_sa_plus_e(reg u64 out_p, reg u64 s_p, reg u64 e_p, reg u64 seed_A_p)
+{
+    reg u64 i;
+    reg u16 t;
+    reg u8 t1;
+    stack u16[NBAR * N] s;
+    stack u16[NBAR * N] e;
+    stack u8[BYTES_SEED_A] seed_A;
+    stack u16[NBAR * N] out;
+
+    stack u64 out_p_st;
+
+    i = 0;
+    while (i < NBAR * N)
+    {
+        t = (u16)[s_p + 2*i];
+        s[(int)i] = t;
+
+        t = (u16)[e_p + 2*i];
+        e[(int)i] = t;
+
+        i += 1;
+    }
+
+    i = 0;
+    while (i < BYTES_SEED_A)
+    {
+        t1 = (u8)[seed_A_p + i];
+        seed_A[(int)i] = t1;
+        i += 1;
+    }
+
+    out_p_st = out_p;
+
+    out = mul_add_sa_plus_e(out, s, e, seed_A);
+
+    out_p = out_p_st;
+
+    i = 0;
+    while (i < NBAR * N)
+    {
+        t = out[(int)i];
+        (u16)[out_p + 2*i] = t;
+        i += 1;
+    }
+}

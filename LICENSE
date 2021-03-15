@@ -1,0 +1,6 @@
+The MIT license applies to VeriFrodo in general. VeriFrodo also includes
+third-party code with different licenses: files containing such code are marked
+with comments and, when possible, SPDX annotations stating the license(s) and
+copyright(s) that apply to the contents.
+
+A copy of each license used is provided in the "LICENSES" directory.

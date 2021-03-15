@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+# SPDX-License-Identifier: MIT
+
+*.S
+*.jo
+*.o
+*.swp
+*.a
+proof/jasmin_extracted
+*~
+*.eco

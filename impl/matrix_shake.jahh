@@ -1,0 +1,244 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#ifndef MATRIX_SHAKE_HH
+#define MATRIX_SHAKE_HH
+
+#include "shake128.jahh"
+#include "params.jahh"
+
+@[returnaddress="stack"]
+fn mul_add_as_plus_e(reg ptr u16[N * NBAR] out, reg const ptr u16[N * NBAR] s, reg const ptr u16[N * NBAR] e, reg const ptr u8[BYTES_SEED_A] seed_A) -> reg ptr u16[N * NBAR]
+{
+    reg u64 i, j, k;
+    stack u64 i_saved;
+
+    reg u64 t1, t2, sum;
+
+    stack u16[N * N] A;
+
+    stack u8[2 + BYTES_SEED_A] seed_A_separated;
+    stack u8[2 * N] A_row;
+
+    stack ptr u16[N * NBAR] s_saved;
+    stack ptr u16[N * NBAR] e_saved;
+    stack ptr u16[N * NBAR] out_saved;
+
+    s_saved = s;
+    e_saved = e;
+    out_saved = out;
+
+    i = 0;
+    while (i < N * N)
+    {
+        A[(int)i] = 0;
+        i += 1;
+    }
+
+    i = 0;
+    j = 2;
+    while (i < BYTES_SEED_A)
+    {
+        k = (64u)seed_A[(int)i];
+        i += 1;
+
+        seed_A_separated[(int)j] = (8u)k;
+        j += 1;
+    }
+
+    i = 0;
+    j = 0;
+    while (i < N)
+    {
+        j = i;
+        seed_A_separated[0] = (8u)j;
+        j >>= 8;
+        seed_A_separated[1] = (8u)j;
+
+        i_saved = i;
+        A_row = shake128_2plusBYTES_SEED_A_to_2N(A_row, seed_A_separated);
+        i = i_saved;
+
+        j = 0;
+        while(j < 2 * N)
+        {
+            k = (64u)A_row[(int)j];
+
+            t1 = i;
+            t1 *= (2 * N);
+            t1 += j;
+
+            A[u8 (int)t1] = (8u)k;
+
+            j += 1;
+        }
+        i += 1;
+    }
+
+    s = s_saved;
+    e = e_saved;
+    out = out_saved;
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        j = (64u)e[(int)i];
+        out[(int)i] = (16u)j;
+        i += 1;
+    }
+
+    i = 0;
+    while(i < N)
+    {
+        k = 0;
+        while(k < NBAR)
+        {
+            j = 0;
+            sum = 0;
+            while(j < N)
+            {
+                t1 = i * N;
+                t1 += j;
+                t1 = (64u)A[(int)t1];
+
+                t2 = k * N;
+                t2 += j;
+                t2 = (64u)s[(int)t2];
+
+                t2 *= t1;
+                sum += t2;
+
+                j += 1;
+            }
+            t1 = i * NBAR;
+            t1 += k;
+            t2 = (64u)out[(int)t1];
+
+            t2 += sum;
+            out[(int)t1] = t2;
+
+            k += 1;
+        }
+        i += 1;
+    }
+    return out;
+}
+
+@[returnaddress="stack"]
+fn mul_add_sa_plus_e(reg ptr u16[NBAR * N] out, reg const ptr u16[NBAR * N] s, reg const ptr u16[NBAR * N] e, reg const ptr u8[BYTES_SEED_A] seed_A) -> reg ptr u16[NBAR * N]
+{
+    reg u64 i, j, k;
+    stack u64 i_saved;
+
+    reg u64 t1, t2, sum;
+
+    stack u16[N * N] A;
+
+    stack u8[2 + BYTES_SEED_A] seed_A_separated;
+    stack u8[2 * N] A_row;
+
+    stack ptr u16[NBAR * N] s_saved;
+    stack ptr u16[NBAR * N] e_saved;
+    stack ptr u16[NBAR * N] out_saved;
+
+    s_saved = s;
+    e_saved = e;
+    out_saved = out;
+
+    i = 0;
+    while (i < N * N)
+    {
+        A[(int)i] = 0;
+        i += 1;
+    }
+
+    i = 0;
+    j = 2;
+    while (i < BYTES_SEED_A)
+    {
+        k = (64u)seed_A[(int)i];
+        i += 1;
+
+        seed_A_separated[(int)j] = (8u)k;
+        j += 1;
+    }
+
+    i = 0;
+    j = 0;
+    while (i < N)
+    {
+        j = i;
+        seed_A_separated[0] = (8u)j;
+        j >>= 8;
+        seed_A_separated[1] = (8u)j;
+
+        i_saved = i;
+        A_row = shake128_2plusBYTES_SEED_A_to_2N(A_row, seed_A_separated);
+        i = i_saved;
+
+        j = 0;
+        while(j < 2 * N)
+        {
+            k = (64u)A_row[(int)j];
+
+            t1 = i;
+            t1 *= (2 * N);
+            t1 += j;
+
+            A[u8 (int)t1] = (8u)k;
+
+            j += 1;
+        }
+        i += 1;
+    }
+
+    s = s_saved;
+    e = e_saved;
+    out = out_saved;
+
+    i = 0;
+    while (i < NBAR * N)
+    {
+        j = (64u)e[(int)i];
+        out[(int)i] = (16u)j;
+        i += 1;
+    }
+
+    i = 0;
+    while(i < N)
+    {
+        k = 0;
+        while(k < NBAR)
+        {
+            j = 0;
+            sum = 0;
+            while(j < N)
+            {
+                t1 = j * N;
+                t1 += i;
+                t1 = (64u)A[(int)t1];
+
+                t2 = k * N;
+                t2 += j;
+                t2 = (64u)s[(int)t2];
+
+                t2 *= t1;
+                sum += t2;
+
+                j += 1;
+            }
+            t1 = k * N;
+            t1 += i;
+            t2 = (64u)out[(int)t1];
+
+            t2 += sum;
+            out[(int)t1] = t2;
+
+            k += 1;
+        }
+        i += 1;
+    }
+    return out;
+}
+
+#endif

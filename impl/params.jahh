@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#ifndef PARAMS_HH
+#define PARAMS_HH
+
+param int N = 640;
+param int NBAR = 8;
+param int LOGQ = 15;
+
+param int BYTES_SEED_A = 16;
+param int PUBLICKEYBYTES = 9616;
+param int SECRETKEYBYTES = 19888;
+param int CRYPTO_BYTES = 16;
+param int BYTES_PKHASH = 16;
+
+param int Q = 32768; /* 1 << LOGQ */
+param int N_BY_NBAR_PACKED_BYTES = 9600; // (N * NBAR * LOGQ)/8
+
+u16[13] CDF_TABLE_DATA = {4643, 13363, 20579, 25843, 29227, 31145, 32103, 32525, 32689, 32745, 32762, 32766, 32767};
+
+#endif

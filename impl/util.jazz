@@ -1,0 +1,139 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#include "params.jahh"
+#include "util.jahh"
+
+export fn jazz_add(reg u64 out_p, reg u64 a_p, reg u64 b_p)
+{
+    inline int i;
+    reg u16 t;
+    stack u16[NBAR * NBAR] a;
+    stack u16[NBAR * NBAR] b;
+    stack u16[NBAR * NBAR] out;
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = (u16)[a_p + 2*i];
+        a[i] = t;
+        t = (u16)[b_p + 2*i];
+        b[i] = t;
+    }
+
+    out = add(out, a, b);
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = out[i];
+        (u16)[out_p + 2*i] = t;
+    }
+}
+
+export fn jazz_sub(reg u64 out_p, reg u64 a_p, reg u64 b_p)
+{
+    inline int i;
+    reg u16 t;
+    stack u16[NBAR * NBAR] a;
+    stack u16[NBAR * NBAR] b;
+    stack u16[NBAR * NBAR] out;
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = (u16)[a_p + 2*i];
+        a[i] = t;
+        t = (u16)[b_p + 2*i];
+        b[i] = t;
+    }
+
+    out = sub(out, a, b);
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = out[i];
+        (u16)[out_p + 2*i] = t;
+    }
+}
+
+export fn jazz_mul_bs(reg u64 out_p, reg u64 b_p, reg u64 s_p)
+{
+    inline int i;
+    reg u16 t;
+    stack u16[NBAR * N] b;
+    stack u16[N * NBAR] s;
+    stack u16[NBAR * NBAR] out;
+
+    for i = 0 to NBAR * N
+    {
+        t = (u16)[b_p + 2*i];
+        b[i] = t;
+        t = (u16)[s_p + 2*i];
+        s[i] = t;
+    }
+
+    out = mul_bs(out, b, s);
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = out[i];
+        (u16)[out_p + 2*i] = t;
+    }
+}
+
+export fn jazz_mul_add_sb_plus_e(reg u64 out_p, reg u64 b_p, reg u64 s_p, reg u64 e_p)
+{
+    inline int i;
+    reg u16 t;
+    stack u16[N * NBAR] b;
+    stack u16[NBAR * N] s;
+    stack u16[NBAR * NBAR] e;
+    stack u16[NBAR * NBAR] out;
+
+    for i = 0 to N * NBAR
+    {
+        t = (u16)[b_p + 2*i];
+        b[i] = t;
+        t = (u16)[s_p + 2*i];
+        s[i] = t;
+    }
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = (u16)[e_p + 2*i];
+        e[i] = t;
+    }
+
+    out = mul_add_sb_plus_e(out, b, s, e);
+
+    for i = 0 to NBAR * NBAR
+    {
+        t = out[i];
+        (u16)[out_p + 2*i] = t;
+    }
+}
+
+export fn jazz_pack_N_by_NBAR(reg u64 out, reg u64 in)
+{
+    stack u16[N * NBAR] in_st;
+    stack u8[N_BY_NBAR_PACKED_BYTES] out_st;
+    reg u64 i;
+    reg u16 t;
+    reg u8 t1;
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t = (u16)[in + 2*i];
+        in_st[(int)i] = t;
+        i += 1;
+    }
+
+    out_st = pack_N_by_NBAR(out_st, in_st);
+
+    i = 0;
+    while (i < N_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = out_st[(int)i];
+        (u8)[out + i] = t1;
+        i += 1;
+    }
+}

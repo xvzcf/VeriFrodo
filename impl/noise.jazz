@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#include "params.jahh"
+#include "noise.jahh"
+
+export fn jazz_sample_N_by_NBAR(reg u64 out, reg u64 n)
+{
+    // n is ignored
+    stack u16[N * NBAR] out_st;
+    reg u64 i;
+    reg u16 t;
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t = (u16)[out + 2*i];
+        out_st[(int)i] = t;
+        i += 1;
+    }
+
+    out_st = sample_N_by_NBAR(out_st);
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t = out_st[(int)i];
+        (u16)[out + 2*i] = t;
+        i += 1;
+    }
+}

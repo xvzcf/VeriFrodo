@@ -1,0 +1,231 @@
+// SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
+// SPDX-License-Identifier: MIT
+
+#ifndef UTIL_HH
+#define UTIL_HH
+
+#include "params.jahh"
+
+fn mul_bs(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[NBAR * N] b, reg const ptr u16[N * NBAR] s) -> reg ptr u16[NBAR * NBAR]
+{
+    reg u64 i, j;
+    inline int k;
+
+    reg u64 t1;
+    reg u16 t2, t3;
+
+    i = 0;
+    while(i < NBAR)
+    {
+        j = 0;
+        while(j < NBAR)
+        {
+            t1 = i * NBAR;
+            t1 += j;
+            out[(int)t1] = 0;
+
+            for k = 0 to N
+            {
+                t1 = i * N;
+                t1 += k;
+                t2 = b[(int)t1];
+
+                t1 = j * N;
+                t1 += k;
+                t3 = s[(int)t1];
+
+                t2 *= t3;
+
+                t1 = i * NBAR;
+                t1 += j;
+                t3 = out[(int)t1];
+
+                t2 += t3;
+
+                out[(int)t1] = t2;
+            }
+            t1 = i * NBAR;
+            t1 += j;
+            t2 = out[(int)t1];
+
+            t2 &= (Q - 1);
+
+            out[(int)t1] = t2;
+
+            j += 1;
+        }
+        i += 1;
+    }
+    return out;
+}
+
+fn mul_add_sb_plus_e(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[N * NBAR] b, reg const ptr u16[NBAR * N] s, reg const ptr u16[NBAR * NBAR] e) -> reg ptr u16[NBAR * NBAR]
+{
+    reg u64 k, i, j, t1;
+    reg u16 t2, t3;
+
+    k = 0;
+    while(k < NBAR)
+    {
+        i = 0;
+        while(i < NBAR)
+        {
+            t1 = k * NBAR;
+            t1 += i;
+            t2 = e[(int)t1];
+            out[(int)t1] = t2;
+
+            j = 0;
+            while(j < N)
+            {
+                t1 = j * NBAR;
+                t1 += i;
+                t2 = b[(int)t1];
+
+                t1 = k * N;
+                t1 += j;
+                t3 = s[(int)t1];
+
+                t2 *= t3;
+
+                t1 = k * NBAR;
+                t1 += i;
+                t3 = out[(int)t1];
+
+                t2 += t3;
+
+                out[(int)t1] = t2;
+
+                j += 1;
+            }
+            t1 = k * NBAR;
+            t1 += i;
+            t2 = out[(int)t1];
+
+            t2 &= (Q - 1);
+
+            out[(int)t1] = t2;
+            i += 1;
+        }
+        k += 1;
+    }
+    return out;
+}
+
+fn add(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[NBAR * NBAR] a b) -> reg ptr u16[NBAR * NBAR]
+{
+    inline int i;
+    reg u16 t;
+    for i = 0 to NBAR * NBAR
+    {
+        t = a[i];
+        t += b[i];
+        t &= (Q - 1);
+        out[i] = t;
+    }
+    return out;
+}
+
+fn sub(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[NBAR * NBAR] a b) -> reg ptr u16[NBAR * NBAR]
+{
+    inline int i;
+    reg u16 t;
+    for i = 0 to NBAR * NBAR
+    {
+        t = a[i];
+        t -= b[i];
+        t &= (Q - 1);
+        out[i] = t;
+    }
+    return out;
+}
+
+fn pack_N_by_NBAR(reg ptr u8[N_BY_NBAR_PACKED_BYTES] out, reg const ptr u16[N * NBAR] in) -> reg ptr u8[N_BY_NBAR_PACKED_BYTES]
+{
+    reg u64 i, j;
+    reg u16 w, mask, tmp;
+
+    reg u8 w_bits_left, out_bits_free;
+    reg u8 t1, t2;
+
+    w = 0;
+    w_bits_left = 0;
+    out_bits_free = 0;
+
+    i = 0;
+    j = -1;
+    while (i < N * NBAR)
+    {
+        t1 = out_bits_free;
+        if (t1 == 0)
+        {
+            j += 1;
+            out[(int)j] = 0;
+            t1 = 8;
+        }
+
+        t2 = w_bits_left;
+        if (t2 == 0)
+        {
+            w = in[(int)i];
+            i += 1;
+
+            t2 = LOGQ;
+        }
+
+        if (t1 < t2)
+        {
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            t2 -= t1;
+            out_bits_free = 0;
+            w_bits_left = t2;
+
+            tmp = w;
+            t2 = w_bits_left;
+            tmp >>= t2;
+
+            t1 = tmp;
+            t1 &= mask;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+
+        else
+        {
+            t1 -= t2;
+            out_bits_free = t1;
+            t1 = t2;
+
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            w_bits_left = 0;
+
+            t2 = out_bits_free;
+
+            t1 = (8u)w;
+            t1 &= mask;
+
+            t1 <<= t2;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+    }
+
+    j += 1;
+    t1 = (8u)w;
+
+    out[(int)j] = t1;
+
+    return out;
+}
+
+#endif
