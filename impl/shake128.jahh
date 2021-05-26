@@ -8,7 +8,7 @@ require "params.jahh"
 
 // BYTES_SEED_A is always 16
 
-fn shake128_CRYPTO_BYTES_to_BYTES_SEED_A(reg ptr u8[BYTES_SEED_A] out, reg const ptr u8[CRYPTO_BYTES] in) -> stack u8[BYTES_SEED_A]
+fn shake128_CRYPTO_BYTES_to_BYTES_SEED_A(reg ptr u8[BYTES_SEED_A] out, reg const ptr u8[CRYPTO_BYTES] in) -> reg ptr u8[BYTES_SEED_A]
 {
     stack u64[25] state;
     reg u8 c;
@@ -38,7 +38,7 @@ fn shake128_CRYPTO_BYTES_to_BYTES_SEED_A(reg ptr u8[BYTES_SEED_A] out, reg const
 }
 
 #[returnaddress="stack"]
-fn shake128_2plusBYTES_SEED_A_to_2N(reg ptr u8[2 * N] out, reg const ptr u8[2 + BYTES_SEED_A] in) -> stack u8[2 * N]
+fn shake128_2plusBYTES_SEED_A_to_2N(reg ptr u8[2 * N] out, reg const ptr u8[2 + BYTES_SEED_A] in) -> reg ptr u8[2 * N]
 {
     stack ptr u8[2 * N] out_saved;
     stack u64[25] state;
@@ -100,7 +100,7 @@ fn shake128_2plusBYTES_SEED_A_to_2N(reg ptr u8[2 * N] out, reg const ptr u8[2 + 
 }
 
 #[returnaddress="stack"]
-fn shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(reg ptr u8[4 * N * NBAR] out, reg const ptr u8[1 + CRYPTO_BYTES] in) -> stack u8[4 * N * NBAR]
+fn shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(reg ptr u8[4 * N * NBAR] out, reg const ptr u8[1 + CRYPTO_BYTES] in) -> reg ptr u8[4 * N * NBAR]
 {
     stack ptr u8[4 * N * NBAR] out_saved;
     stack u64[25] state;
@@ -162,12 +162,14 @@ fn shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(reg ptr u8[4 * N * NBAR] out, 
 }
 
 #[returnaddress="stack"]
-fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg const ptr u8[PUBLICKEYBYTES] in) -> stack u8[BYTES_PKHASH]
+fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg const ptr u8[PUBLICKEYBYTES] in) -> reg ptr u8[BYTES_PKHASH]
 {
     stack u64[25] state;
     reg u8 c;
     reg u64 i, j, k;
     stack ptr u8[BYTES_PKHASH] out_saved;
+
+    stack ptr u8[PUBLICKEYBYTES] in_saved;
 
     out_saved = out;
 
@@ -186,7 +188,9 @@ fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg con
             i += 1;
         }
 
+        in_saved = in;
         state = __keccakf1600_ref(state);
+        in = in_saved;
     }
     k = PUBLICKEYBYTES;
     k -= i;
@@ -208,6 +212,158 @@ fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg con
 
     i = 0;
     while (i < BYTES_PKHASH)
+    {
+        c = state[u8 (int)i];
+        out[(int)i] = c;
+        i += 1;
+    }
+
+    return out;
+}
+
+#[returnaddress="stack"]
+fn shake128_BYTES_PKHASH_plus_BYTES_MU_to_2timesCRYPTO_BYTES(reg ptr u8[2 * CRYPTO_BYTES] out, reg const ptr u8[BYTES_PKHASH + BYTES_MU] in) -> reg ptr u8[2 * CRYPTO_BYTES]
+{
+    stack u64[25] state;
+    reg u8 byte;
+    reg u64 i, j;
+
+    state = st0(state);
+
+    i = 0;
+    while (i < BYTES_PKHASH + BYTES_MU)
+    {
+        byte = in[(int)i];
+        state[u8 (int)i] ^= byte;
+
+        i += 1;
+    }
+
+    state[u8 BYTES_PKHASH+BYTES_MU] ^= 0x1f;
+    state[u8 SHAKE128_RATE-1] ^= 0x80;
+
+    state = __keccakf1600_ref(state);
+
+    i = 0;
+    while (i < 2 * CRYPTO_BYTES)
+    {
+        byte = state[u8 (int)i];
+        out[(int)i] = byte;
+        i += 1;
+    }
+
+    return out;
+}
+
+#[returnaddress="stack"]
+fn shake128_1plusCRYPTO_BYTES_to_SP_EP_EPP_BYTES(reg ptr u8[SP_EP_EPP_BYTES] out, reg const ptr u8[1 + CRYPTO_BYTES] in) -> reg ptr u8[SP_EP_EPP_BYTES]
+{
+    stack ptr u8[SP_EP_EPP_BYTES] out_saved;
+    stack u64[25] state;
+    reg u8 byte;
+    reg u64 i, j;
+    stack u64 j_saved;
+    stack u8[SHAKE128_RATE] out_shake128_rate;
+
+    state = st0(state);
+
+    i = 0;
+    while (i < 1 + CRYPTO_BYTES)
+    {
+        byte = in[(int)i];
+        state[u8 (int)i] ^= byte;
+        i += 1;
+    }
+
+    state[u8 1 + CRYPTO_BYTES] ^= 0x1f;
+    state[u8 SHAKE128_RATE-1] ^= 0x80;
+
+    j = 0;
+    while (j < SP_EP_EPP_BYTES - SHAKE128_RATE)
+    {
+        j_saved = j;
+        out_saved = out;
+        state, out_shake128_rate = shake128_squeezeblock(state, out_shake128_rate);
+        j = j_saved;
+        out = out_saved;
+
+        i = 0;
+        while (i < SHAKE128_RATE)
+        {
+            byte = out_shake128_rate[u8 (int)i];
+            i += 1;
+
+            out[(int)j] = byte;
+            j += 1;
+        }
+    }
+
+    j_saved = j;
+    out_saved = out;
+    state, out_shake128_rate = shake128_squeezeblock(state, out_shake128_rate);
+    j = j_saved;
+    out = out_saved;
+
+    i = 0;
+    while (j < SP_EP_EPP_BYTES)
+    {
+        byte = out_shake128_rate[u8 (int)i];
+        i += 1;
+
+        out[(int)j] = byte;
+        j += 1;
+    }
+
+    return out;
+}
+
+#[returnaddress="stack"]
+fn shake128_CIPHERTEXTBYTESplusCRYPTO_BYTES_to_CRYPTO_BYTES(reg ptr u8[CRYPTO_BYTES] out, reg const ptr u8[CIPHERTEXTBYTES + CRYPTO_BYTES] in) -> reg ptr u8[CRYPTO_BYTES]
+{
+    stack u64[25] state;
+    reg u8 c;
+    reg u64 i, j, k;
+    stack ptr u8[CRYPTO_BYTES] out_saved;
+
+    out_saved = out;
+
+    state = st0(state);
+
+    i = 0;
+    while (i < (CIPHERTEXTBYTES + CRYPTO_BYTES) - SHAKE128_RATE)
+    {
+        j = 0;
+        while (j < SHAKE128_RATE)
+        {
+            c = in[(int)i];
+            state[u8 (int)j] ^= c;
+
+            j += 1;
+            i += 1;
+        }
+
+        state = __keccakf1600_ref(state);
+    }
+    k = (CIPHERTEXTBYTES + CRYPTO_BYTES);
+    k -= i;
+
+    j = 0;
+    while (i < (CIPHERTEXTBYTES + CRYPTO_BYTES))
+    {
+        c = in[(int)i];
+        state[u8 (int)j] ^= c;
+
+        j += 1;
+        i += 1;
+    }
+    state[u8 (int)k] ^= 0x1f;
+    state[u8 SHAKE128_RATE-1] ^= 0x80;
+    state = __keccakf1600_ref(state);
+
+    out = out_saved;
+
+    i = 0;
+    while (i < CRYPTO_BYTES)
     {
         c = state[u8 (int)i];
         out[(int)i] = c;

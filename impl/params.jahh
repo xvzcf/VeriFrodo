@@ -10,8 +10,14 @@ param int PUBLICKEYBYTES = 9616;
 param int SECRETKEYBYTES = 19888;
 param int CRYPTO_BYTES = 16;
 param int BYTES_PKHASH = 16;
+param int EXTRACTED_BITS = 2;
+param int CIPHERTEXTBYTES = 9720;
 
-param int Q = 32768; /* 1 << LOGQ */
-param int N_BY_NBAR_PACKED_BYTES = 9600; // (N * NBAR * LOGQ)/8
+param int SP_EP_EPP_BYTES = 20608; // ((2 * N + NBAR)* NBAR) * 2
+
+param int BYTES_MU = 16; // (EXTRACTED_BITS * NBAR * NBAR) / 8
+param int Q = 32768; // 1 << LOGQ
+param int N_BY_NBAR_PACKED_BYTES = 9600; // (N * NBAR * LOGQ) / 8
+param int NBAR_BY_NBAR_PACKED_BYTES = 120; // (NBAR * NBAR * LOGQ) / 8
 
 u16[13] CDF_TABLE_DATA = {4643, 13363, 20579, 25843, 29227, 31145, 32103, 32525, 32689, 32745, 32762, 32766, 32767};

@@ -41,3 +41,42 @@ fn sample_N_by_NBAR(reg ptr u16[N * NBAR] s) -> reg ptr u16[N * NBAR]
 
     return s;
 }
+
+fn sample_NBAR_by_NBAR(reg ptr u16[NBAR * NBAR] s) -> reg ptr u16[NBAR * NBAR]
+{
+    reg u64 i, j;
+    reg u16 t1, t2, sample;
+
+    reg ptr u16[13] cdf_table_ptr;
+    cdf_table_ptr = CDF_TABLE_DATA;
+
+    i = 0;
+    while(i < NBAR * NBAR)
+    {
+        t1 = s[(int)i];
+        t1 >>= 1;
+
+        sample = 0;
+        j = 0;
+        while(j < 12)
+        {
+            t2 = cdf_table_ptr[(int)j];
+            t2 -= t1;
+            t2 >>= 15;
+            sample += t2;
+
+            j += 1;
+        }
+        t1 = s[(int)i];
+        t1 &= 0x1;
+
+        t2 = t1 * -1;
+        t2 ^= sample;
+        t2 += t1;
+        s[(int)i] = t2;
+
+        i += 1;
+    }
+
+    return s;
+}

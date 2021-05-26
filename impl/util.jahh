@@ -224,3 +224,204 @@ fn pack_N_by_NBAR(reg ptr u8[N_BY_NBAR_PACKED_BYTES] out, reg const ptr u16[N * 
 
     return out;
 }
+
+fn unpack_to_N_by_NBAR(reg ptr u16[N * NBAR] out, reg const ptr u8[N_BY_NBAR_PACKED_BYTES] in) -> reg ptr u16[N * NBAR]
+{
+    reg u64 i, j;
+    reg u16 w, mask, tmp;
+
+    reg u16 w_bits_left, out_bits_free;
+    reg u16 t1, t2;
+
+    w = 0;
+    w_bits_left = 0;
+    out_bits_free = 0;
+
+    i = 0;
+    j = -1;
+    while (i < N_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = out_bits_free;
+        if (t1 == 0)
+        {
+            j += 1;
+            out[(int)j] = 0;
+            t1 = LOGQ;
+        }
+
+        t2 = w_bits_left;
+        if (t2 == 0)
+        {
+            w = (16u)in[(int)i];
+            i += 1;
+
+            t2 = 8;
+        }
+
+        if (t1 > t2)
+        {
+            t1 -= t2;
+            out_bits_free = t1;
+            t1 = t2;
+
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            w_bits_left = 0;
+
+            t2 = out_bits_free;
+
+            t1 = w;
+            t1 &= mask;
+
+            t1 <<= t2;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+        else
+        {
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            t2 -= t1;
+            out_bits_free = 0;
+            w_bits_left = t2;
+
+            tmp = w;
+            t2 = w_bits_left;
+            tmp >>= t2;
+
+            t1 = tmp;
+            t1 &= mask;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+    }
+
+    return out;
+}
+
+fn pack_NBAR_by_NBAR(reg ptr u8[NBAR_BY_NBAR_PACKED_BYTES] out, reg const ptr u16[NBAR * NBAR] in) -> reg ptr u8[NBAR_BY_NBAR_PACKED_BYTES]
+{
+    reg u64 i, j;
+    reg u16 w, mask, tmp;
+
+    reg u8 w_bits_left, out_bits_free;
+    reg u8 t1, t2;
+
+    w = 0;
+    w_bits_left = 0;
+    out_bits_free = 0;
+
+    i = 0;
+    j = -1;
+    while (i < NBAR * NBAR)
+    {
+        t1 = out_bits_free;
+        if (t1 == 0)
+        {
+            j += 1;
+            out[(int)j] = 0;
+            t1 = 8;
+        }
+
+        t2 = w_bits_left;
+        if (t2 == 0)
+        {
+            w = in[(int)i];
+            i += 1;
+
+            t2 = LOGQ;
+        }
+
+        if (t1 < t2)
+        {
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            t2 -= t1;
+            out_bits_free = 0;
+            w_bits_left = t2;
+
+            tmp = w;
+            t2 = w_bits_left;
+            tmp >>= t2;
+
+            t1 = tmp;
+            t1 &= mask;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+
+        else
+        {
+            t1 -= t2;
+            out_bits_free = t1;
+            t1 = t2;
+
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            w_bits_left = 0;
+
+            t2 = out_bits_free;
+
+            t1 = (8u)w;
+            t1 &= mask;
+
+            t1 <<= t2;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+    }
+
+    j += 1;
+    t1 = (8u)w;
+
+    out[(int)j] = t1;
+
+    return out;
+}
+
+fn key_encode(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[BYTES_MU / 2] in) -> reg ptr u16[NBAR * NBAR]
+{
+    reg u64 i, j;
+    reg u64 out_idx;
+    reg u16 t1, t2;
+
+    out_idx = 0;
+    i = 0;
+    while (i < (BYTES_MU / 2))
+    {
+        t1 = in[(int)i];
+
+        j = 0;
+        while (j < 8)
+        {
+            t2 = t1;
+            t2 &= 3;
+            t2 <<= (LOGQ - EXTRACTED_BITS);
+
+            out[(int)out_idx] = t2;
+            out_idx += 1;
+
+            t1 >>= EXTRACTED_BITS;
+
+            j += 1;
+        }
+        i += 1;
+    }
+    return out;
+}

@@ -16,6 +16,9 @@ int jazz_mul_add_as_plus_e(uint16_t *out, const uint16_t *s, const uint16_t *e, 
 int jazz_mul_add_sa_plus_e(uint16_t *out, const uint16_t *s, const uint16_t *e, const uint8_t *seed_A);
 
 void jazz_sample_N_by_NBAR(uint16_t *s, size_t n);
+void jazz_sample_NBAR_by_NBAR(uint16_t *s, size_t n);
 void jazz_pack_N_by_NBAR(uint8_t *out, const uint16_t *in);
+void jazz_unpack_to_N_by_NBAR(uint16_t *out, const uint8_t *in);
+void jazz_key_encode(uint16_t *out, const uint16_t *in);
 
 #endif

@@ -137,3 +137,57 @@ export fn jazz_pack_N_by_NBAR(reg u64 out, reg u64 in)
         i += 1;
     }
 }
+
+export fn jazz_unpack_to_N_by_NBAR(reg u64 out, reg u64 in)
+{
+    stack u8[N_BY_NBAR_PACKED_BYTES] in_st;
+    stack u16[N * NBAR] out_st;
+    reg u64 i;
+    reg u8 t1;
+    reg u16 t2;
+
+    i = 0;
+    while (i < N_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = (u8)[in + i];
+        in_st[(int)i] = t1;
+        i += 1;
+    }
+
+    out_st = unpack_to_N_by_NBAR(out_st, in_st);
+
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t2 = out_st[(int)i];
+        (u16)[out + 2*i] = t2;
+        i += 1;
+    }
+}
+
+export fn jazz_key_encode(reg u64 out, reg u64 in)
+{
+    stack u16[BYTES_MU / 2] in_st;
+    stack u16[NBAR * NBAR] out_st;
+    reg u64 i;
+    reg u8 t1;
+    reg u16 t2;
+
+    i = 0;
+    while (i < BYTES_MU)
+    {
+        t1 = (u8)[in + i];
+        in_st[u8 (int)i] = t1;
+        i += 1;
+    }
+
+    out_st = key_encode(out_st, in_st);
+
+    i = 0;
+    while (i < NBAR * NBAR)
+    {
+        t2 = out_st[(int)i];
+        (u16)[out + 2*i] = t2;
+        i += 1;
+    }
+}

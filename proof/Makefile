@@ -9,22 +9,17 @@ IMPL_DIR ?= $(PWD)/../impl
 EXTRACTION_DIR = $(PWD)/jasmin_extracted
 
 .DEFAULT_GOAL:=all
-all: $(EXTRACTION_DIR)/kem.ec $(EXTRACTION_DIR)/util.ec
+all: $(EXTRACTION_DIR)/kem.ec
 
 $(EXTRACTION_DIR)/kem.ec: $(IMPL_DIR)/kem.jazz
 	mkdir -p $(EXTRACTION_DIR)
-	cd $(EXTRACTION_DIR) && $(JASMINC) -ec jazz_crypto_kem_keypair -oec $(notdir $@) $<
-
-# Temporary, remove once encryption is implemented.
-$(EXTRACTION_DIR)/util.ec: $(IMPL_DIR)/util.jazz
-	mkdir -p $(EXTRACTION_DIR)
-	cd $(EXTRACTION_DIR) && $(JASMINC) -ec add -ec mul_bs -oec $(notdir $@) $<
+	cd $(EXTRACTION_DIR) && $(JASMINC) -ec jazz_crypto_kem_keypair -ec jazz_crypto_kem_enc -oec $(notdir $@) $<
 
 $(IMPL_DIR)/%.jazz:
 	$(MAKE) -C $(IMPL_DIR) $(notdir $@)
 
 .PHONY: test
-test: correctness/frodo_util.ec $(EXTRACTION_DIR)/util.ec
+test: correctness/frodo_util.ec $(EXTRACTION_DIR)/kem.ec
 	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) $<
 
 .PHONY: clean

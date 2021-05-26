@@ -49,5 +49,5 @@ test: $(TEST_OBJECTS)
 clean:
 	$(RM) -f $(TEST_OBJECTS)
 	$(RM) -f $(JASMIN_OBJECTS)
-	$(RM) *.S
+	$(RM) *.S *.o
 	$(MAKE) -C $(PQCLEAN_IMPL) clean

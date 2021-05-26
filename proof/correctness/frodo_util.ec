@@ -4,12 +4,12 @@
 require import AllCore ZModP.
 from Jasmin require import JWord.
 require import Array64.
-require import Util.
+require import Kem.
 
 clone import ZModRing as Frodo640Ring with op p <- 2^15.
 
 lemma add_is_correct _a _b:
-      hoare[ Util.M.add :
+      hoare[ Kem.M.add :
            a = _a /\
            b = _b
            ==>
