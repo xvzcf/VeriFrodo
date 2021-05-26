@@ -26,7 +26,7 @@ int main(void)
     jazz_sample_N_by_NBAR(out_jasmin, PARAMS_N * PARAMS_NBAR);
     for(size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
     {
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     printf("Success!\n");

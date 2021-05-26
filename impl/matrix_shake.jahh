@@ -1,13 +1,10 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#ifndef MATRIX_SHAKE_HH
-#define MATRIX_SHAKE_HH
+require "shake128.jahh"
+require "params.jahh"
 
-#include "shake128.jahh"
-#include "params.jahh"
-
-@[returnaddress="stack"]
+#[returnaddress="stack"]
 fn mul_add_as_plus_e(reg ptr u16[N * NBAR] out, reg const ptr u16[N * NBAR] s, reg const ptr u16[N * NBAR] e, reg const ptr u8[BYTES_SEED_A] seed_A) -> reg ptr u16[N * NBAR]
 {
     reg u64 i, j, k;
@@ -124,7 +121,7 @@ fn mul_add_as_plus_e(reg ptr u16[N * NBAR] out, reg const ptr u16[N * NBAR] s, r
     return out;
 }
 
-@[returnaddress="stack"]
+#[returnaddress="stack"]
 fn mul_add_sa_plus_e(reg ptr u16[NBAR * N] out, reg const ptr u16[NBAR * N] s, reg const ptr u16[NBAR * N] e, reg const ptr u8[BYTES_SEED_A] seed_A) -> reg ptr u16[NBAR * N]
 {
     reg u64 i, j, k;
@@ -240,5 +237,3 @@ fn mul_add_sa_plus_e(reg ptr u16[NBAR * N] out, reg const ptr u16[NBAR * N] s, r
     }
     return out;
 }
-
-#endif

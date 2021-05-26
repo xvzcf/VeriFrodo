@@ -28,7 +28,7 @@ int main(void)
     for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         //printf("a1[%zu]: %u, b1[%zu]: %u, JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, a1[i], i, b1[i], i, out_jasmin[i], i, out_pqclean[i]);
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     // Test sub
@@ -36,7 +36,7 @@ int main(void)
     jazz_sub(out_jasmin, a1, b1);
     for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     uint16_t b2[PARAMS_NBAR * PARAMS_N];
@@ -59,7 +59,7 @@ int main(void)
     for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, out_jasmin[i], i, out_pqclean[i]);
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     uint16_t e1[PARAMS_NBAR * PARAMS_NBAR];
@@ -70,7 +70,7 @@ int main(void)
     jazz_mul_add_sb_plus_e(out_jasmin, b2, s1, e1);
     for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     uint8_t pack_out_pqclean[(PARAMS_LOGQ * PARAMS_N * PARAMS_NBAR) / 8];
@@ -84,7 +84,7 @@ int main(void)
     jazz_pack_N_by_NBAR(pack_out_jazz, s1);
     for(size_t i = 0; i < outlen; i++)
     {
-        assert((pack_out_pqclean[i] ^ pack_out_jazz[i]) == 0);
+        assert(pack_out_pqclean[i] == pack_out_jazz[i]);
     }
 
     printf("Success!\n");

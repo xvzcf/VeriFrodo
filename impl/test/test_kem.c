@@ -37,12 +37,12 @@ int main(void)
     for(size_t i = 0; i < CRYPTO_PUBLICKEYBYTES; i++)
     {
         //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, out_pk_jasmin[i], i, out_pk_pqclean[i]);
-        assert((out_pk_jasmin[i] ^ out_pk_pqclean[i]) == 0);
+        assert(out_pk_jasmin[i] == out_pk_pqclean[i]);
     }
     for(size_t i = 0; i < CRYPTO_SECRETKEYBYTES; i++)
     {
         //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, out_sk_jasmin[i], i, out_sk_pqclean[i]);
-        assert((out_sk_jasmin[i] ^ out_sk_pqclean[i]) == 0);
+        assert(out_sk_jasmin[i] == out_sk_pqclean[i]);
     }
 
     printf("Success!\n");

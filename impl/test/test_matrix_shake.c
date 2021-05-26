@@ -42,7 +42,7 @@ int main(void)
     for(size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
     {
         //printf("i = %zu, PQCLEAN = %u, JASMIN = %u\n", i, out_pqclean[i], out_jasmin[i]);
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     memset(out_pqclean, 0, PARAMS_NBAR * PARAMS_N * sizeof(out_pqclean[0]));
@@ -54,7 +54,7 @@ int main(void)
     for(size_t i = 0; i < PARAMS_NBAR * PARAMS_N; i++)
     {
         //printf("i = %zu, PQCLEAN = %u, JASMIN = %u\n", i, out_pqclean[i], out_jasmin[i]);
-        assert((out_pqclean[i] ^ out_jasmin[i]) == 0);
+        assert(out_pqclean[i] == out_jasmin[i]);
     }
 
     printf("Success!\n");

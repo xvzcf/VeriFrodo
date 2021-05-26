@@ -7,12 +7,11 @@ JASMINFLAGS = -lea
 PQCLEAN_IMPL = test/pqclean-impl
 
 TEST_OBJECTS = test_util.o test_noise.o test_matrix_shake.o test_kem.o
-JASMIN_OBJECTS = util.o noise.o matrix_shake.o kem.o
 
 TEST_CFLAGS = -Wall -Wextra
 
 .DEFAULT_GOAL:=all
-all: $(TEST_OBJECTS) $(JASMIN_OBJECTS)
+all: $(TEST_OBJECTS)
 
 # Recipes for building the test programs.
 test_util.o: test/test_util.c $(PQCLEAN_IMPL)/util.o util.o test/randombytes.c
@@ -31,24 +30,12 @@ test_kem.o: test/test_kem.c $(PQCLEAN_IMPL)/kem.o $(PQCLEAN_IMPL)/matrix_shake.o
 %.o: %.S
 	$(CC) $(CFLAGS) $< -c -o $@
 
-%.S: %.jo
+kem.S: kem.jazz shake128.jahh util.jahh params.jahh noise.jahh matrix_shake.jahh
+util.S: util.jazz params.jahh util.jahh
+noise.S: noise.jazz params.jahh noise.jahh
+matrix_shake.S: matrix_shake.jazz params.jahh shake128.jahh matrix_shake.jahh
+kem.S util.S noise.S matrix_shake.S:
 	$(JASMINC) $(JASMINFLAGS) $< -o $@
-
-kem.jo: kem.jazz shake128.jahh util.jahh params.jahh noise.jahh matrix_shake.jahh
-	cat $< | $(CC) -E - | grep -v ^# > $@
-	sed -e "s/@/#/g" $@ > $@.tmp
-	mv $@.tmp $@
-
-util.jo: util.jazz params.jahh util.jahh
-	cat $< | $(CC) -E - | grep -v ^# > $@
-
-noise.jo: noise.jazz params.jahh noise.jahh
-	cat $< | $(CC) -E - | grep -v ^# > $@
-
-matrix_shake.jo: matrix_shake.jazz params.jahh shake128.jahh matrix_shake.jahh
-	cat $< | $(CC) -E - | grep -v ^# > $@
-	sed -e "s/@/#/g" $@ > $@.tmp
-	mv $@.tmp $@
 
 # Recipe for building the PQClean code used for testing
 $(PQCLEAN_IMPL)/%.o:
@@ -62,5 +49,5 @@ test: $(TEST_OBJECTS)
 clean:
 	$(RM) -f $(TEST_OBJECTS)
 	$(RM) -f $(JASMIN_OBJECTS)
-	$(RM) *.S *.jo
+	$(RM) *.S
 	$(MAKE) -C $(PQCLEAN_IMPL) clean

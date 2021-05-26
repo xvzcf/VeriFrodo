@@ -1,11 +1,8 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#ifndef FIPS202_EXTRA_HH
-#define FIPS202_EXTRA_HH
-
-#include "fips202.jahh"
-#include "params.jahh"
+require "fips202.jahh"
+require "params.jahh"
 
 // This file has to be modified when changing parameter sets, since CRYPTO_BYTES can be 24 or 32
 
@@ -40,7 +37,7 @@ fn shake128_CRYPTO_BYTES_to_BYTES_SEED_A(reg ptr u8[BYTES_SEED_A] out, reg const
     return out;
 }
 
-@[returnaddress="stack"]
+#[returnaddress="stack"]
 fn shake128_2plusBYTES_SEED_A_to_2N(reg ptr u8[2 * N] out, reg const ptr u8[2 + BYTES_SEED_A] in) -> stack u8[2 * N]
 {
     stack ptr u8[2 * N] out_saved;
@@ -102,7 +99,7 @@ fn shake128_2plusBYTES_SEED_A_to_2N(reg ptr u8[2 * N] out, reg const ptr u8[2 + 
     return out;
 }
 
-@[returnaddress="stack"]
+#[returnaddress="stack"]
 fn shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(reg ptr u8[4 * N * NBAR] out, reg const ptr u8[1 + CRYPTO_BYTES] in) -> stack u8[4 * N * NBAR]
 {
     stack ptr u8[4 * N * NBAR] out_saved;
@@ -164,7 +161,7 @@ fn shake128_1plusCRYPTO_BYTES_to_4timesNtimesNBAR(reg ptr u8[4 * N * NBAR] out, 
     return out;
 }
 
-@[returnaddress="stack"]
+#[returnaddress="stack"]
 fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg const ptr u8[PUBLICKEYBYTES] in) -> stack u8[BYTES_PKHASH]
 {
     stack u64[25] state;
@@ -219,5 +216,3 @@ fn shake128_PUBLICKEYBYTES_to_BYTES_PKHASH(reg ptr u8[BYTES_PKHASH] out, reg con
 
     return out;
 }
-
-#endif

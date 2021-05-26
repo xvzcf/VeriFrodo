@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#include "params.jahh"
-#include "util.jahh"
+require "params.jahh"
+require "util.jahh"
 
 export fn jazz_add(reg u64 out_p, reg u64 a_p, reg u64 b_p)
 {

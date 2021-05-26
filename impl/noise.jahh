@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#ifndef NOISE_HH
-#define NOISE_HH
-
-#include "params.jahh"
+require "params.jahh"
 
 fn sample_N_by_NBAR(reg ptr u16[N * NBAR] s) -> reg ptr u16[N * NBAR]
 {
@@ -44,5 +41,3 @@ fn sample_N_by_NBAR(reg ptr u16[N * NBAR] s) -> reg ptr u16[N * NBAR]
 
     return s;
 }
-
-#endif

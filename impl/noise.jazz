@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#include "params.jahh"
-#include "noise.jahh"
+require "params.jahh"
+require "noise.jahh"
 
 export fn jazz_sample_N_by_NBAR(reg u64 out, reg u64 n)
 {

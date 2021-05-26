@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#include "matrix_shake.jahh"
-#include "params.jahh"
+require "matrix_shake.jahh"
+require "params.jahh"
 
 export fn jazz_mul_add_as_plus_e(reg u64 out_p, reg u64 s_p, reg u64 e_p, reg u64 seed_A_p)
 {

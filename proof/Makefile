@@ -1,24 +1,31 @@
 # SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 # SPDX-License-Identifier: MIT
 
-JASMINC ?= /Users/wxyz/Projects/jasmin/compiler/jasminc
+EASYCRYPT ?= /Users/wxyz/.opam/easycrypt/bin/easycrypt
+JASMIN_SRC ?= /Users/wxyz/Projects/jasmin
+JASMINC = $(JASMIN_SRC)/compiler/jasminc
+
 IMPL_DIR ?= $(PWD)/../impl
 EXTRACTION_DIR = $(PWD)/jasmin_extracted
 
 .DEFAULT_GOAL:=all
 all: $(EXTRACTION_DIR)/kem.ec $(EXTRACTION_DIR)/util.ec
 
-$(EXTRACTION_DIR)/kem.ec: $(IMPL_DIR)/kem.jo
+$(EXTRACTION_DIR)/kem.ec: $(IMPL_DIR)/kem.jazz
 	mkdir -p $(EXTRACTION_DIR)
 	cd $(EXTRACTION_DIR) && $(JASMINC) -ec jazz_crypto_kem_keypair -oec $(notdir $@) $<
 
 # Temporary, remove once encryption is implemented.
-$(EXTRACTION_DIR)/util.ec: $(IMPL_DIR)/util.jo
+$(EXTRACTION_DIR)/util.ec: $(IMPL_DIR)/util.jazz
 	mkdir -p $(EXTRACTION_DIR)
-	cd $(EXTRACTION_DIR) && $(JASMINC) -ec add -oec $(notdir $@) $<
+	cd $(EXTRACTION_DIR) && $(JASMINC) -ec add -ec mul_bs -oec $(notdir $@) $<
 
-$(IMPL_DIR)/%.jo:
+$(IMPL_DIR)/%.jazz:
 	$(MAKE) -C $(IMPL_DIR) $(notdir $@)
+
+.PHONY: test
+test: correctness/frodo_util.ec $(EXTRACTION_DIR)/util.ec
+	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) $<
 
 .PHONY: clean
 clean:

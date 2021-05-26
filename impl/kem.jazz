@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#include "shake128.jahh"
-#include "util.jahh"
-#include "params.jahh"
-#include "noise.jahh"
-#include "matrix_shake.jahh"
+require "shake128.jahh"
+require "util.jahh"
+require "params.jahh"
+require "noise.jahh"
+require "matrix_shake.jahh"
 
 // All secret buffers are cleared as soon as they are no longer needed
 export fn jazz_crypto_kem_keypair(reg u64 pk, reg u64 sk, reg u64 randomness)

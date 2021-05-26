@@ -1,10 +1,7 @@
 // SPDX-FileCopyrightText: 2021 The VeriFrodo Authors
 // SPDX-License-Identifier: MIT
 
-#ifndef UTIL_HH
-#define UTIL_HH
-
-#include "params.jahh"
+require "params.jahh"
 
 fn mul_bs(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[NBAR * N] b, reg const ptr u16[N * NBAR] s) -> reg ptr u16[NBAR * NBAR]
 {
@@ -227,5 +224,3 @@ fn pack_N_by_NBAR(reg ptr u8[N_BY_NBAR_PACKED_BYTES] out, reg const ptr u16[N * 
 
     return out;
 }
-
-#endif

@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: MIT
 
 *.S
-*.jo
 *.o
 *.swp
 *.a
 proof/jasmin_extracted
 *~
 *.eco
+
+# Emacs
+\#*\#
