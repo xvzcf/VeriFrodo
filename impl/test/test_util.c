@@ -4,10 +4,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 
 #include "randombytes.h"
 
+#include "pqclean-impl/api.h"
 #include "pqclean-impl/params.h"
 #include "pqclean-impl/common.h"
 #include "../common.h"
@@ -126,6 +128,62 @@ int main(void)
         //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, pqclean_out[i], i, custom_out[i]);
         assert(pqclean_out[i] == jazz_out[i]);
     }
+
+    // Test key_decode
+    uint16_t key_dec_in[PARAMS_NBAR * PARAMS_NBAR];
+
+    uint16_t pqclean_dec_out[BYTES_MU / 2];
+    uint16_t jazz_dec_out[BYTES_MU / 2];
+
+    randombytes((uint8_t*)key_dec_in, PARAMS_NBAR * PARAMS_NBAR * sizeof(key_dec_in[0]));
+
+    jazz_key_decode(jazz_dec_out, key_dec_in);
+    PQCLEAN_FRODOKEM640SHAKE_CLEAN_key_decode(pqclean_dec_out, key_dec_in);
+
+    for(size_t i = 0; i < (BYTES_MU / 2); i++)
+    {
+        //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, jazz_dec_out[i], i, pqclean_dec_out[i]);
+        assert(jazz_dec_out[i] == pqclean_dec_out[i]);
+    }
+
+
+    // Test ct_verify
+    uint16_t jazz_vf_in[PARAMS_N * PARAMS_NBAR];
+    uint16_t pqclean_vf_in[PARAMS_N * PARAMS_NBAR];
+
+    randombytes((uint8_t*)jazz_vf_in, PARAMS_N * PARAMS_NBAR * sizeof(jazz_vf_in[0]));
+    randombytes((uint8_t*)pqclean_vf_in, PARAMS_N * PARAMS_NBAR * sizeof(pqclean_vf_in[0]));
+
+    int8_t jazz_res = jazz_ct_verify_N_by_NBAR(jazz_vf_in, pqclean_vf_in);
+    int8_t pqclean_res = PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_verify(jazz_vf_in, pqclean_vf_in, PARAMS_N * PARAMS_NBAR);
+    assert(jazz_res == pqclean_res);
+
+    // Test ct_select
+    int8_t selector = 0xFF;
+    uint8_t jazz_selected_out[CRYPTO_BYTES];
+    uint8_t pqclean_selected_out[CRYPTO_BYTES];
+
+    jazz_ct_select_CRYPTO_BYTES(jazz_selected_out, (uint8_t*)jazz_vf_in, (uint8_t*)pqclean_vf_in, selector);
+    PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_select(pqclean_selected_out, (uint8_t*)jazz_vf_in, (uint8_t*)pqclean_vf_in, CRYPTO_BYTES, selector);
+    for(size_t i = 0; i < CRYPTO_BYTES; i++)
+    {
+        assert(jazz_selected_out[i] == pqclean_selected_out[i]);
+    }
+
+    selector = 0;
+    jazz_ct_select_CRYPTO_BYTES(jazz_selected_out, (uint8_t*)jazz_vf_in, (uint8_t*)pqclean_vf_in, selector);
+    PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_select(pqclean_selected_out, (uint8_t*)jazz_vf_in, (uint8_t*)pqclean_vf_in, CRYPTO_BYTES, selector);
+    for(size_t i = 0; i < CRYPTO_BYTES; i++)
+    {
+        assert(jazz_selected_out[i] == pqclean_selected_out[i]);
+    }
+
+    // Test ct_verify with matching inputs
+    memcpy(pqclean_vf_in, jazz_vf_in, PARAMS_N * PARAMS_NBAR * sizeof(jazz_vf_in[0]));
+    jazz_res = jazz_ct_verify_N_by_NBAR(jazz_vf_in, pqclean_vf_in);
+    pqclean_res = PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_verify(jazz_vf_in, pqclean_vf_in, PARAMS_N * PARAMS_NBAR);
+    assert(jazz_res == pqclean_res);
+
 
     printf("Success!\n");
     return EXIT_SUCCESS;

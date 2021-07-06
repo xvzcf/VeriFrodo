@@ -81,6 +81,34 @@ int main(void)
         //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, out_ss_jasmin[i], i, out_ss_pqclean[i]);
         assert(out_ss_jasmin[i] == out_ss_pqclean[i]);
     }
+    //printf("\n");
+
+    /* Test crypto_kem_dec */
+    uint8_t out_dec_ss_pqclean[CRYPTO_BYTES];
+    uint8_t out_dec_ss_jasmin[CRYPTO_BYTES];
+
+    /*for(size_t i = 0; i < CRYPTO_SECRETKEYBYTES; i++)
+    {
+        out_sk_pqclean[i] = 255;
+        out_sk_jasmin[i] = out_sk_pqclean[i];
+    }
+    for(size_t i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++)
+    {
+        out_ct_pqclean[i] = 255;
+        out_ct_jasmin[i] = out_ct_pqclean[i];
+    }*/
+
+    jazz_crypto_kem_dec(out_dec_ss_jasmin, out_ct_jasmin, out_sk_jasmin);
+    PQCLEAN_FRODOKEM640SHAKE_CLEAN_crypto_kem_dec(out_dec_ss_pqclean, out_ct_pqclean, out_sk_pqclean);
+    for(size_t i = 0; i < CRYPTO_BYTES; i++)
+    {
+        //printf(" %u ", out_dec_ss_jasmin[i]);
+        //printf("JASMIN[%zu]: %u, PQCLEAN[%zu]: %u\n", i, out_dec_ss_jasmin[i], i, out_dec_ss_pqclean[i]);
+        assert(out_dec_ss_jasmin[i] == out_ss_jasmin[i]);
+        assert(out_dec_ss_pqclean[i] == out_ss_pqclean[i]);
+        assert(out_dec_ss_jasmin[i] == out_dec_ss_pqclean[i]);
+    }
+    //printf("\n");
 
     printf("Success!\n");
     return EXIT_SUCCESS;

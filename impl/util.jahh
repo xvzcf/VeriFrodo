@@ -395,6 +395,88 @@ fn pack_NBAR_by_NBAR(reg ptr u8[NBAR_BY_NBAR_PACKED_BYTES] out, reg const ptr u1
     return out;
 }
 
+fn unpack_to_NBAR_by_NBAR(reg ptr u16[NBAR * NBAR] out, reg const ptr u8[NBAR_BY_NBAR_PACKED_BYTES] in) -> reg ptr u16[NBAR * NBAR]
+{
+    reg u64 i, j;
+    reg u16 w, mask, tmp;
+
+    reg u16 w_bits_left, out_bits_free;
+    reg u16 t1, t2;
+
+    w = 0;
+    w_bits_left = 0;
+    out_bits_free = 0;
+
+    i = 0;
+    j = -1;
+    while (i < NBAR_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = out_bits_free;
+        if (t1 == 0)
+        {
+            j += 1;
+            out[(int)j] = 0;
+            t1 = LOGQ;
+        }
+
+        t2 = w_bits_left;
+        if (t2 == 0)
+        {
+            w = (16u)in[(int)i];
+            i += 1;
+
+            t2 = 8;
+        }
+
+        if (t1 > t2)
+        {
+            t1 -= t2;
+            out_bits_free = t1;
+            t1 = t2;
+
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            w_bits_left = 0;
+
+            t2 = out_bits_free;
+
+            t1 = w;
+            t1 &= mask;
+
+            t1 <<= t2;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+        else
+        {
+            mask = 1;
+            mask <<= t1;
+            mask -= 1;
+
+            t2 -= t1;
+            out_bits_free = 0;
+            w_bits_left = t2;
+
+            tmp = w;
+            t2 = w_bits_left;
+            tmp >>= t2;
+
+            t1 = tmp;
+            t1 &= mask;
+
+            t2 = out[(int)j];
+            t1 += t2;
+            out[(int)j] = t1;
+        }
+    }
+
+    return out;
+}
+
 fn key_encode(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[BYTES_MU / 2] in) -> reg ptr u16[NBAR * NBAR]
 {
     reg u64 i, j;
@@ -408,10 +490,10 @@ fn key_encode(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[BYTES_MU / 2] in) 
         t1 = in[(int)i];
 
         j = 0;
-        while (j < 8)
+        while (j < 8) // 16 / EXTRACTED_BITS
         {
             t2 = t1;
-            t2 &= 3;
+            t2 &= 3; // (1 << EXTRACTED_BITS) - 1
             t2 <<= (LOGQ - EXTRACTED_BITS);
 
             out[(int)out_idx] = t2;
@@ -423,5 +505,129 @@ fn key_encode(reg ptr u16[NBAR * NBAR] out, reg const ptr u16[BYTES_MU / 2] in) 
         }
         i += 1;
     }
+    return out;
+}
+
+fn key_decode(reg ptr u16[BYTES_MU / 2] out, reg const ptr u16[NBAR * NBAR] in) -> reg ptr u16[BYTES_MU / 2]
+{
+    reg u64 i, j, k;
+    reg u64 in_idx;
+    reg u16 t1, t2;
+
+    in_idx = 0;
+    i = 0;
+    while (i < (BYTES_MU / 2))
+    {
+        j = 0;
+        t2 = 0;
+        while (j < 8)
+        {
+            t1 = in[(int)in_idx];
+            in_idx += 1;
+
+            t1 &= 32767;
+            t1 += 4096;
+            t1 >>= (LOGQ - EXTRACTED_BITS);
+            t1 &= 3;
+            k = j * EXTRACTED_BITS;
+            t1 <<= k;
+
+            t2 |= t1;
+
+            j += 1;
+        }
+
+        out[(int)i] = t2;
+        i += 1;
+    }
+    return out;
+}
+
+fn ct_verify_N_by_NBAR(reg const ptr u16[N * NBAR] lhs, reg const ptr u16[N * NBAR] rhs) -> reg u8
+{
+    reg u16 r;
+    reg u16 neg_r;
+    reg u8 r_mask;
+    reg u64 i;
+
+    i = 0;
+    r = 0;
+    while (i < N * NBAR)
+    {
+        r = lhs[(int)i];
+        r ^= rhs[(int)i];
+
+        i += 1;
+    }
+
+    // If r is non zero, this
+    // sets the lsb of r to 1.
+    neg_r = r * -1;
+    r |= neg_r;
+    r >>= 15;
+
+    // Set r to 0xFF if r = 1,
+    // and 0 otherwise.
+    r_mask = (8u)r;
+    r_mask = -1 * r_mask;
+
+    return r_mask;
+}
+
+fn ct_verify_NBAR_by_NBAR(reg const ptr u16[NBAR * NBAR] lhs, reg const ptr u16[NBAR * NBAR] rhs) -> reg u8
+{
+    reg u16 r;
+    reg u16 neg_r;
+    reg u8 r_mask;
+    reg u64 i;
+
+    i = 0;
+    r = 0;
+    while (i < NBAR * NBAR)
+    {
+        r = lhs[(int)i];
+        r ^= rhs[(int)i];
+
+        i += 1;
+    }
+
+    // If r is non zero, this
+    // sets the lsb of r to 1.
+    neg_r = r * -1;
+    r |= neg_r;
+    r >>= 15;
+
+    // Set r to 0xFF if r = 1,
+    // and 0 otherwise.
+    r_mask = (8u)r;
+    r_mask = -1 * r_mask;
+
+    return r_mask;
+}
+
+fn ct_select_CRYPTO_BYTES(reg ptr u8[CRYPTO_BYTES] out, reg const ptr u8[CRYPTO_BYTES] lhs, reg const ptr u8[CRYPTO_BYTES] rhs, reg u8 selector) -> reg ptr u8[CRYPTO_BYTES]
+{
+    reg u8 select_lhs, select_rhs, not_selector;
+    reg u8 r;
+    reg u64 i;
+
+    not_selector = selector;
+    not_selector ^= 0xFF;
+
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        select_lhs = lhs[(int)i];
+        select_lhs &= not_selector;
+
+        select_rhs = rhs[(int)i];
+        select_rhs &= selector;
+
+        r = select_lhs | select_rhs;
+        out[(int)i] = r;
+
+        i += 1;
+    }
+
     return out;
 }

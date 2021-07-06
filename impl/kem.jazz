@@ -7,6 +7,10 @@ require "params.jahh"
 require "noise.jahh"
 require "matrix_shake.jahh"
 
+// TODO: Refactor using Jasmin sub-arrays.
+// TODO: General clean-up and refactoring.
+// TODO: Clear secret buffers in crypto_kem_enc and crypto_kem_dec
+
 // All secret buffers are cleared as soon as they are no longer needed
 export fn jazz_crypto_kem_keypair(reg u64 pk, reg u64 sk, reg u64 randomness)
 {
@@ -370,6 +374,249 @@ export fn jazz_crypto_kem_enc(reg u64 ct, reg u64 ss_out, reg u64 pk, reg u64 ra
 
         i += 1;
     }
+}
 
-    // TODO: Clear secret buffers.
+export fn jazz_crypto_kem_dec(reg u64 ss_out, reg u64 ct, reg u64 sk)
+{
+    reg u64 i, j;
+    reg u8 t1, t2;
+    reg u16 t3;
+
+    stack u8[BYTES_SEED_A] pk_seedA;
+    stack u8[N_BY_NBAR_PACKED_BYTES] pk_b;
+    stack u16[NBAR * NBAR] W;
+    stack u16[NBAR * NBAR] CminusW;
+
+    stack u16[N * NBAR] B;
+    stack u16[N * NBAR] Bp;
+    stack u16[N * NBAR] BBp;
+
+    stack u16[NBAR * NBAR] C;
+    stack u16[NBAR * NBAR] CC;
+    stack u16[NBAR * NBAR] CCplusW;
+
+    stack u16[N * NBAR] sk_S;
+    stack u8[CRYPTO_BYTES] sk_s;
+
+    stack u8[N_BY_NBAR_PACKED_BYTES] ct_c1;
+    stack u8[NBAR_BY_NBAR_PACKED_BYTES] ct_c2;
+
+    stack u8[BYTES_PKHASH + BYTES_MU] G2in;
+    stack u8[2 * CRYPTO_BYTES] G2out;
+
+    stack u16[BYTES_MU / 2] muprime;
+
+    stack u8[1 + CRYPTO_BYTES] shake_input_seedSEprime;
+    stack u8[SP_EP_EPP_BYTES] SpEpEpp;
+    stack u16[N * NBAR] Sp;
+    stack u16[N * NBAR] Ep;
+    stack u16[N * NBAR] Bp;
+    stack u16[NBAR * NBAR] Epp;
+
+    stack u8[CRYPTO_BYTES] kprime;
+
+    stack u8[CIPHERTEXTBYTES + CRYPTO_BYTES] Fin;
+    stack u8[CRYPTO_BYTES] Fin_k;
+
+    stack u8[CRYPTO_BYTES] ss;
+
+    stack u64 i_saved, sk_saved, ct_saved;
+
+    i = 0;
+    while(i < N_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = (u8)[ct + i];
+        ct_c1[(int)i] = t1;
+        i += 1;
+    }
+    Bp = unpack_to_N_by_NBAR(Bp, ct_c1);
+
+    j = 0;
+    while(j < NBAR_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = (u8)[ct + i];
+        i += 1;
+
+        ct_c2[(int)j] = t1;
+        j += 1;
+    }
+    C = unpack_to_NBAR_by_NBAR(C, ct_c2);
+
+    ct_saved = ct;
+
+    i = CRYPTO_BYTES + PUBLICKEYBYTES;
+    j = 0;
+    while (j < N * NBAR * 2)
+    {
+        t1 = (u8)[sk + i];
+        i += 1;
+
+        sk_S[u8 (int)j] = t1;
+        j += 1;
+    }
+    W = mul_bs(W, Bp, sk_S);
+
+    CminusW = sub(CminusW, C, W);
+    muprime = key_decode(muprime, CminusW);
+
+    i = 2 * N * NBAR;
+    i += CRYPTO_BYTES + PUBLICKEYBYTES;
+    j = 0;
+    while(j < BYTES_PKHASH)
+    {
+        t1 = (u8)[sk + i];
+        i += 1;
+
+        G2in[(int)j] = t1;
+        j += 1;
+    }
+    i = 0;
+    while(j < BYTES_PKHASH + BYTES_MU)
+    {
+        t1 = muprime[u8 (int)i];
+        i += 1;
+
+        G2in[(int)j] = t1;
+        j += 1;
+    }
+    G2out = shake128_BYTES_PKHASH_plus_BYTES_MU_to_2timesCRYPTO_BYTES(G2out, G2in);
+
+    shake_input_seedSEprime[0] = 0x96;
+    i = 0;
+    j = 1;
+    while(j < 1 + CRYPTO_BYTES)
+    {
+        t1 = G2out[(int)i];
+        i += 1;
+
+        shake_input_seedSEprime[(int)j] = t1;
+        j += 1;
+    }
+
+    sk_saved = sk;
+    SpEpEpp = shake128_1plusCRYPTO_BYTES_to_SP_EP_EPP_BYTES(SpEpEpp, shake_input_seedSEprime);
+    sk = sk_saved;
+
+    i = 0;
+    while (i < N * NBAR * 2)
+    {
+        t1 = SpEpEpp[(int)i];
+        Sp[u8 (int)i] = t1;
+        i += 1;
+    }
+    Sp = sample_N_by_NBAR(Sp);
+
+    j = 0;
+    while (j < N * NBAR * 2)
+    {
+        t1 = SpEpEpp[(int)i];
+        i += 1;
+
+        Ep[u8 (int)j] = t1;
+        j += 1;
+    }
+    Ep = sample_N_by_NBAR(Ep);
+
+    j = 0;
+    while(j < NBAR * NBAR * 2)
+    {
+        t1 = SpEpEpp[(int)i];
+        i += 1;
+
+        Epp[u8 (int)j] = t1;
+        j += 1;
+    }
+    Epp = sample_NBAR_by_NBAR(Epp);
+
+    i = CRYPTO_BYTES;
+    j = 0;
+    while (j < BYTES_SEED_A)
+    {
+        t1 = (u8)[sk + i];
+        i += 1;
+
+        pk_seedA[(int)j] = t1;
+        j += 1;
+    }
+    i_saved = i;
+    sk_saved = sk;
+    BBp = mul_add_sa_plus_e(BBp, Sp, Ep, pk_seedA);
+    i = i_saved;
+    ct = ct_saved;
+    sk = sk_saved;
+
+    j = 0;
+    while(j < N_BY_NBAR_PACKED_BYTES)
+    {
+        t1 = (u8)[sk + i];
+        i += 1;
+
+        pk_b[(int)j] = t1;
+        j += 1;
+    }
+    B = unpack_to_N_by_NBAR(B, pk_b);
+
+    CminusW = mul_add_sb_plus_e(CminusW, B, Sp, Epp);
+
+    CC = key_encode(CC, muprime);
+    CCplusW = add(CCplusW, CminusW, CC);
+
+    // Reduce BBp modulo q
+    i = 0;
+    while (i < N * NBAR)
+    {
+        t3 = BBp[(int)i];
+        t3 &= (Q - 1);
+        BBp[(int)i] = t3;
+
+        i += 1;
+    }
+
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        t1 = (u8)[sk + i];
+        sk_s[(int)i] = t1;
+        i += 1;
+    }
+    i = CRYPTO_BYTES;
+    j = 0;
+    while(j < CRYPTO_BYTES)
+    {
+        t1 = G2out[(int)i];
+        i += 1;
+
+        kprime[(int)j] = t1;
+        j += 1;
+    }
+    t1 = ct_verify_N_by_NBAR(Bp, BBp);
+    t2 = ct_verify_NBAR_by_NBAR(C, CCplusW);
+    t1 |= t2;
+    Fin_k = ct_select_CRYPTO_BYTES(Fin_k, kprime, sk_s, t1);
+
+    i = 0;
+    while (i < CIPHERTEXTBYTES)
+    {
+        t1 = (u8)[ct + i];
+        Fin[(int)i] = t1;
+        i += 1;
+    }
+    j = 0;
+    while(j < CRYPTO_BYTES)
+    {
+        t1 = Fin_k[(int)j];
+        j += 1;
+
+        Fin[(int)i] = t1;
+        i += 1;
+    }
+    ss = shake128_CIPHERTEXTBYTESplusCRYPTO_BYTES_to_CRYPTO_BYTES(ss, Fin);
+
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        t1 = ss[u8 (int)i];
+        (u8)[ss_out + i] = t1;
+        i += 1;
+    }
 }

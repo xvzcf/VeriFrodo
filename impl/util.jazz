@@ -191,3 +191,88 @@ export fn jazz_key_encode(reg u64 out, reg u64 in)
         i += 1;
     }
 }
+
+export fn jazz_key_decode(reg u64 out, reg u64 in)
+{
+    stack u16[NBAR * NBAR] in_st;
+    stack u16[BYTES_MU / 2] out_st;
+
+    reg u64 i;
+    reg u16 t1;
+
+    i = 0;
+    while (i < NBAR * NBAR)
+    {
+        t1 = (u16)[in + 2*i];
+        in_st[(int)i] = t1;
+        i += 1;
+    }
+
+    out_st = key_decode(out_st, in_st);
+
+    i = 0;
+    while (i < (BYTES_MU / 2))
+    {
+        t1 = out_st[(int)i];
+        (u16)[out + 2*i] = t1;
+        i += 1;
+    }
+}
+
+export fn jazz_ct_verify_N_by_NBAR(reg u64 lhs, reg u64 rhs) -> reg u8
+{
+    stack u16[N * NBAR] lhs_st;
+    stack u16[N * NBAR] rhs_st;
+
+    reg u64 i;
+    reg u16 t1;
+    reg u8 res;
+
+    i = 0;
+    while(i < N * NBAR)
+    {
+        t1 = (u16)[lhs + 2*i];
+        lhs_st[(int)i] = t1;
+
+        t1 = (u16)[rhs + 2*i];
+        rhs_st[(int)i] = t1;
+
+        i += 1;
+    }
+
+    res = ct_verify_N_by_NBAR(lhs_st, rhs_st);
+
+    return res;
+}
+
+export fn jazz_ct_select_CRYPTO_BYTES(reg u64 out, reg u64 lhs, reg u64 rhs, reg u8 selector)
+{
+    stack u8[CRYPTO_BYTES] lhs_st;
+    stack u8[CRYPTO_BYTES] rhs_st;
+    stack u8[CRYPTO_BYTES] out_st;
+
+    reg u64 i;
+    reg u8 t1;
+
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        t1 = (u8)[lhs + i];
+        lhs_st[(int)i] = t1;
+
+        t1 = (u8)[rhs + i];
+        rhs_st[(int)i] = t1;
+
+        i += 1;
+    }
+
+    out_st = ct_select_CRYPTO_BYTES(out_st, lhs_st, rhs_st, selector);
+
+    i = 0;
+    while(i < CRYPTO_BYTES)
+    {
+        t1 = out_st[(int)i];
+        (u8)[out + i] = t1;
+        i += 1;
+    }
+}

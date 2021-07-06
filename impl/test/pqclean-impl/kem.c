@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "fips202.h"
 
@@ -180,6 +181,7 @@ int PQCLEAN_FRODOKEM640SHAKE_CLEAN_crypto_kem_dec(uint8_t *ss, const uint8_t *ct
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_unpack(C, PARAMS_NBAR * PARAMS_NBAR, ct_c2, (PARAMS_LOGQ * PARAMS_NBAR * PARAMS_NBAR) / 8, PARAMS_LOGQ);
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_mul_bs(W, Bp, S);
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_sub(W, C, W);
+
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_key_decode((uint16_t *)muprime, W);
 
     // Generate (seedSE' || k') = G_2(pkh || mu')
