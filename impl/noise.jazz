@@ -4,9 +4,8 @@
 require "params.jahh"
 require "noise.jahh"
 
-export fn jazz_sample_N_by_NBAR(reg u64 out, reg u64 n)
+export fn jazz_sample_N_by_NBAR(reg u64 out)
 {
-    // n is ignored
     stack u16[N * NBAR] out_st;
     reg u64 i;
     reg u16 t;
@@ -30,9 +29,8 @@ export fn jazz_sample_N_by_NBAR(reg u64 out, reg u64 n)
     }
 }
 
-export fn jazz_sample_NBAR_by_NBAR(reg u64 out, reg u64 n)
+export fn jazz_sample_NBAR_by_NBAR(reg u64 out)
 {
-    // n is ignored
     stack u16[NBAR * NBAR] out_st;
     reg u64 i;
     reg u16 t;

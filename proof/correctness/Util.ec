@@ -2,11 +2,21 @@
 (* SPDX-License-Identifier: MIT *)
 
 require import AllCore ZModP.
+require import Distr.
 from Jasmin require import JWord.
-require import Array64.
+require import Array64 Array5120.
 require import Kem.
 
+require import Frodo640.
+
 clone import ZModRing as Frodo640Ring with op p <- 2^15.
+
+lemma sample_N_by_NBAR_is_correct:
+    phoare[ Kem.M.sample_N_by_NBAR : 
+                mu1 Frodo640.dunif (W16.to_uint s.[0]) = 1%r / 65536%r
+                ==> (W16.to_uint res.[0]) = 0 ] = (9288%r / 65536%r).
+proof.
+admitted.
 
 lemma add_is_correct _a _b:
       hoare[ Kem.M.add :
@@ -25,3 +35,4 @@ proof.
       smt.
   + skip => />. move => *. split. smt. smt.
 qed.
+

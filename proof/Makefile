@@ -13,13 +13,14 @@ all: $(EXTRACTION_DIR)/kem.ec
 
 $(EXTRACTION_DIR)/kem.ec: $(IMPL_DIR)/kem.jazz
 	mkdir -p $(EXTRACTION_DIR)
-	cd $(EXTRACTION_DIR) && $(JASMINC) -ec jazz_crypto_kem_keypair -ec jazz_crypto_kem_enc -oec $(notdir $@) $<
-
-$(IMPL_DIR)/%.jazz:
-	$(MAKE) -C $(IMPL_DIR) $(notdir $@)
+	cd $(EXTRACTION_DIR) && $(JASMINC) \
+							-ec jazz_crypto_kem_keypair \
+							-ec jazz_crypto_kem_enc \
+							-ec jazz_crypto_kem_dec \
+							-oec $(notdir $@) $<
 
 .PHONY: test
-test: correctness/frodo_util.ec $(EXTRACTION_DIR)/kem.ec
+test: correctness/Util.ec $(EXTRACTION_DIR)/kem.ec
 	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) $<
 
 .PHONY: clean

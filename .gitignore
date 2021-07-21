@@ -10,4 +10,5 @@ proof/jasmin_extracted
 *.eco
 
 # Emacs
-\#*\#
+\#*\#*
+.*\#*.*
