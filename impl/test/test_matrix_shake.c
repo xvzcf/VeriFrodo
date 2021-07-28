@@ -28,7 +28,7 @@ static void test_mul_add_as_plus_e(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_mul_add_as_plus_e(out_pqclean, s, e, seed_A);
     jazz_mul_add_as_plus_e(out_jasmin, s, e, seed_A);
-    for(size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -48,7 +48,7 @@ static void test_mul_add_sa_plus_e(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_mul_add_sa_plus_e(out_pqclean, s, e, seed_A);
     jazz_mul_add_sa_plus_e(out_jasmin, s, e, seed_A);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_N; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_N; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }

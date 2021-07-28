@@ -27,7 +27,7 @@ static void test_add(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_add(out_pqclean, lhs, rhs);
     jazz_add(out_jasmin, lhs, rhs);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -45,7 +45,7 @@ static void test_sub(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_sub(out_pqclean, lhs, rhs);
     jazz_sub(out_jasmin, lhs, rhs);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -63,7 +63,7 @@ static void test_mul_bs(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_mul_bs(out_pqclean, b, s);
     jazz_mul_bs(out_jasmin, b, s);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -83,7 +83,7 @@ static void test_mul_add_sb_plus_e(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_mul_add_sb_plus_e(out_pqclean, b, s, e);
     jazz_mul_add_sb_plus_e(out_jasmin, b, s, e);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -100,7 +100,7 @@ static void test_pack(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_pack(out_pqclean, pack_outlen, in, PARAMS_N * PARAMS_NBAR, PARAMS_LOGQ);
     jazz_pack_N_by_NBAR(out_jasmin, in);
-    for(size_t i = 0; i < pack_outlen; i++)
+    for (size_t i = 0; i < pack_outlen; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -117,7 +117,7 @@ static void test_unpack(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_unpack(out_pqclean, PARAMS_N * PARAMS_NBAR, in, inlen, PARAMS_LOGQ);
     jazz_unpack_to_N_by_NBAR(out_jasmin, in);
-    for(size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
@@ -133,7 +133,7 @@ static void test_key_encode(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_key_encode(pqclean_out, (uint16_t*)in);
     jazz_key_encode(jasmin_out, (uint16_t*)in);
-    for(size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_NBAR * PARAMS_NBAR; i++)
     {
         assert(pqclean_out[i] == jasmin_out[i]);
     }
@@ -149,7 +149,7 @@ static void test_key_decode(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_key_decode(pqclean_out, in);
     jazz_key_decode(jasmin_out, in);
-    for(size_t i = 0; i < (BYTES_MU / 2); i++)
+    for (size_t i = 0; i < (BYTES_MU / 2); i++)
     {
         assert(pqclean_out[i] == jasmin_out[i]);
     }
@@ -189,7 +189,7 @@ static void test_ct_select(void)
     selector = 0xFF;
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_select(pqclean_out, (uint8_t*)pqclean_in, (uint8_t*)jasmin_in, CRYPTO_BYTES, selector);
     jazz_ct_select_CRYPTO_BYTES(jasmin_out, (uint8_t*)pqclean_in, (uint8_t*)jasmin_in, selector);
-    for(size_t i = 0; i < CRYPTO_BYTES; i++)
+    for (size_t i = 0; i < CRYPTO_BYTES; i++)
     {
         assert(pqclean_out[i] == jasmin_out[i]);
     }
@@ -197,7 +197,7 @@ static void test_ct_select(void)
     selector = 0;
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_ct_select(pqclean_out, (uint8_t*)pqclean_in, (uint8_t*)jasmin_in, CRYPTO_BYTES, selector);
     jazz_ct_select_CRYPTO_BYTES(jasmin_out, (uint8_t*)pqclean_in, (uint8_t*)jasmin_in, selector);
-    for(size_t i = 0; i < CRYPTO_BYTES; i++)
+    for (size_t i = 0; i < CRYPTO_BYTES; i++)
     {
         assert(pqclean_out[i] == jasmin_out[i]);
     }

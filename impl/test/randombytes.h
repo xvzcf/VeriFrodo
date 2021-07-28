@@ -11,6 +11,6 @@
 #include <unistd.h>
 #endif
 
-int randombytes(uint8_t *buf, size_t n);
+int randombytes(uint8_t* buf, size_t n);
 
 #endif

@@ -1,0 +1,13 @@
+# find impl -name '*.[ch]' | grep -v '/pqclean-impl/' | xargs astyle --options=.astylerc
+--style=bsd
+--indent=spaces=4
+--pad-oper
+--pad-comma
+--pad-header
+--align-pointer=type
+--add-braces
+--convert-tabs
+--mode=c
+# disable backup files
+--suffix=none
+--lineend=linux

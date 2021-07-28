@@ -23,7 +23,7 @@ static void test_sample_n(void)
 
     PQCLEAN_FRODOKEM640SHAKE_CLEAN_sample_n(out_pqclean, PARAMS_N * PARAMS_NBAR);
     jazz_sample_N_by_NBAR(out_jasmin);
-    for(size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
+    for (size_t i = 0; i < PARAMS_N * PARAMS_NBAR; i++)
     {
         assert(out_pqclean[i] == out_jasmin[i]);
     }
