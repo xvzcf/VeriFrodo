@@ -1,11 +1,12 @@
 (* SPDX-FileCopyrightText: 2021 The VeriFrodo Authors *)
 (* SPDX-License-Identifier: MIT *)
 
-require import AllCore Distr Int.
-from Jasmin require import JWord.
-require import Array5120.
+require import AllCore ZModP.
+require import Distr Int.
 
-theory Frodo640.
+theory Params.
+
+clone import ZModRing as Frodo640Ring with op p <- 2^15.
 
 op ddiscr_gauss: int distr.
 axiom supp_ddiscr_gauss (x : int) : -12 <= x <= 12 <=> x \in ddiscr_gauss.
@@ -31,19 +32,4 @@ axiom supp_dunif x : 0 <= x <= 65536 <=> x \in dunif.
 axiom dunif1E x : mu1 dunif x = 1%r / 65536%r.
 axiom dunif_ll : is_lossless dunif.
 
-module M = {
-  proc discr_gauss_sample() : int = {
-  var sample : int;
-  sample <$ ddiscr_gauss;
-  return sample;
-  }
-
-      proc uniform_sample () : int = {
-      var sample : int;
-      sample <$ dunif;
-      return sample;
-  }
-}.
-
-
-end Frodo640.
+end Params.

@@ -20,8 +20,9 @@ $(EXTRACTION_DIR)/kem.ec: $(IMPL_DIR)/kem.jazz
 							-oec $(notdir $@) $<
 
 .PHONY: test
-test: correctness/Util.ec $(EXTRACTION_DIR)/kem.ec
-	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) $<
+test: $(wildcard correctness/*.ec) $(EXTRACTION_DIR)/kem.ec
+	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) correctness/Util.ec
+	$(EASYCRYPT) -I Jasmin:$(JASMIN_SRC)/eclib -I $(EXTRACTION_DIR) correctness/Noise.ec
 
 .PHONY: clean
 clean:

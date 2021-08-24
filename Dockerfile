@@ -52,10 +52,7 @@ WORKDIR /proof
 RUN nix-shell \
         --include nixpkgs=${NIX_CHANNEL} \
         --packages gnumake \
-        --run 'make \
-                   -e JASMINC=/jasmin/compiler/jasminc \
-                   -e IMPL_DIR=/impl && \
-               /easycrypt/ec.native \
-                   -I Jasmin:/jasmin/eclib \
-                   -I /proof/jasmin_extracted \
-                   correctness/frodo_util.ec'
+        --run 'make test \
+                   -e EASYCRYPT=/easycrypt/ec.native \
+                   -e JASMIN_SRC=/jasmin \
+                   -e IMPL_DIR=/impl'
