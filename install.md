@@ -36,7 +36,7 @@ For MacOS:
 
 	```
 	Clone this repo.
-	Run: ./ec.native check-easycrypt-install.ec
+	Run: easycrypt check-easycrypt-install.ec
 	```
 
 ## Installing jasmin
@@ -44,7 +44,7 @@ For MacOS:
 1. Clone the repository:
 
 	```
-	git clone git@github.com:jasmin-lang/jasmin.git
+	git clone --branch glob_array3 git@github.com:jasmin-lang/jasmin.git
 	cd jasmin
 	```
 
@@ -53,6 +53,7 @@ For MacOS:
 3. Run:
 
 	```
+        nix-shell
 	cd compiler
 	make CIL
 	make
